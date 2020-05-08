@@ -7,7 +7,29 @@
     <title>Document</title>
 </head>
 <body>
-    
+    <h1>My Virtual Card Deck</h1>
+    <p>
+        <span id="is-shuffled" style="display: none; font-style: italic">[Shuffled]</span>
+        Cards Dealt: 
+        <span id="cards-dealt">0</span>
+         / 
+        <span id="cards-total">0</span> 
+        <span id="end-of-deck" style="display: none; font-style: italic">[End of Deck]</span>
+    </p>
+
+    <button name="newDeck" id="new-deck">Get New Deck</button>
+    <button name="shuffleDeck" id="shuffle-deck" disabled>Shuffle Deck</button>
+    <button name="drawCard" id="draw-card" disabled>Draw a Card</button>
+    <button name="dealHand" id="deal-hand" disabled>Deal a Hand</button>
+    <hr>
+    <div id="Pile">
+        <!-- Played cards go here -->
+    </div>
+    <hr>
+    <div id="Hand">
+        <!-- Hand cards go here -->
+    </div>
+    <hr>
     <script type="text/javascript" src="assets/images/index.js"></script>
     <script type="text/javascript" src="assets/js/logic.js"></script>
 </body>
