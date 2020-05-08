@@ -1,3 +1,16 @@
 * {
-    
+    font-size: 16px;   
+}
+
+.card-display {
+    height: 300px;
+    display: flex;
+    flex-direction: row;
+    overflow: auto;
+}
+
+.card {
+    height: 250px;
+    width: 125px;
+    padding: 0 50px;
 }

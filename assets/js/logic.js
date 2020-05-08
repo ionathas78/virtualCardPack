@@ -1,9 +1,10 @@
 const _CARDS_INHAND = 5;
+const _STATUS_DURATION = 5000;
 
 const _deckMaster = [];
-const _deckCurrent = [];
-const _deckPile = [];
-const _deckHand = [];
+let _deckCurrent = [];
+let _deckPile = [];
+let _deckHand = [];
 
 const _spanIsShuffled = document.getElementById("is-shuffled");
 const _spanCardsDealt = document.getElementById("cards-dealt");
@@ -16,29 +17,158 @@ const _btnDealHand = document.getElementById("deal-hand");
 const _divDeck = document.getElementById("card-deck");
 const _divPile = document.getElementById("card-pile");
 const _divHand = document.getElementById("card-hand");
+const _divStatus = document.getElementById("status-text");
 
-//      **      Page Functions
-
-function dealBtnHandler(event) {
-    event.preventDefault();
-
+const Location = {
+    "DECK": 0,
+    "HAND": 1,
+    "PILE": 2
 }
 
-function drawBtnHandler(event) {
-    event.preventDefault();
-
+function Card(groupName, cardName, cardPath, cardLocation = Location.DECK) {
+    return {           
+        group: groupName,
+        name: cardName,
+        filePath: cardPath,
+        location: cardLocation
+    };
 }
+
+//      **      Event Handlers
 
 function newDeckBtnHandler(event) {
     event.preventDefault();
-
+    clearAll();
+    
+    getNewDeck();
+    renderCardCount();
+    hideShuffled();
+    hideEndOfDeck();
+    enableButtons();
 }
 
 function shuffleBtnHandler(event) {
     event.preventDefault();
 
+    if (_deckCurrent.length > 0) {
+        shuffleDeck();
+        displayShuffled();
+        showStatus("Remaining Deck Shuffled!");
+    }
 }
 
+function dealBtnHandler(event) {
+    event.preventDefault();
+
+    if (_deckCurrent.length > 0) {
+        drawCardToHand(_CARDS_INHAND);
+        renderHand();
+    }
+    if (_deckCurrent.length = 0) {
+        displayEndOfDeck();
+        disableButtons();
+    }
+    hideShuffled();
+}
+
+function drawBtnHandler(event) {
+    event.preventDefault();
+
+    if (_deckCurrent.length > 0) {
+        let newCard = flipCardToPile();
+        clearPile();
+        renderCard(newCard, _divPile);
+    }
+    if (_deckCurrent.length = 0) {
+        displayEndOfDeck();
+        disableButtons();
+    }
+    hideShuffled();
+}
+
+//      **      Page functions
+
+function renderCard(cardToDisplay, targetElement) {
+    let figNew = document.createElement("fig");
+    let imgNew = document.createElement("img");
+
+    figNew.className = "card";
+
+    imgNew.src = cardToDisplay.filePath;
+    imgNew.alt = cardToDisplay.name;
+    imgNew.height = "300";
+    
+    figNew.appendChild(imgNew);
+    targetElement.appendChild(figNew);
+}
+
+function renderHand() {
+    clearHand();
+    _deckHand.forEach(card => { renderCard(card, _divHand) });
+}
+
+function showStatus(statusText = "") {
+    let pNew = document.createElement("p");
+    pNew.textContent = statusText;
+
+    clearDOMElement(_divStatus);
+    _divStatus.appendChild(pNew);
+
+    setInterval(() => {
+        clearDOMElement(_divStatus);
+    }, _STATUS_DURATION);
+}
+
+function renderCardCount() {
+    _spanCardsDealt.textContent = _deckHand.length + _deckPile.length;
+    _spanCardsTotal.textContent = _deckMaster.length;
+}
+
+function clearDeck() {
+    clearDOMElement(_divDeck);
+}
+
+function clearHand() {
+    clearDOMElement(_divHand);
+}
+
+function clearPile() {
+    clearDOMElement(_divPile);
+}
+
+function clearAll() {
+    clearDOMElement(_divDeck);
+    clearDOMElement(_divHand);
+    clearDOMElement(_divPile);
+}
+
+function displayShuffled() {
+    _spanIsShuffled.style.display = "block";
+}
+
+function hideShuffled() {
+    _spanIsShuffled.style.display = "none";
+}
+
+function displayEndOfDeck() {
+    _spanEndOfDeck.style.display = "block";
+}
+
+function hideEndOfDeck() {
+    _spanEndOfDeck.style.display = "none";
+}
+
+function enableButtons() {
+    _btnDealHand.disabled = false;
+    _btnDrawCard.disabled = false;
+    _btnShuffleDeck.disabled = false;
+}
+
+function disableButtons() {
+    _btnDealHand.disabled = true;
+    _btnDrawCard.disabled = true;
+    _btnShuffleDeck.disabled = true;
+}
 
 //      **      Deck Functions
 
@@ -48,20 +178,15 @@ function getCards() {
     groupName = getCommonNameFromPath(_cardsList);
     console.log(_cardsList);
     console.log(groupName);
-
+    for (var h = 0; h < _deckMaster.length; h++) {
+        _deckMaster.pop();
+    }
 
     for (var i = 0; i < _cardsList.length; i++) {
         let cardPath = _cardsList[i];
         if (cardPath != "") {
             let cardName = cardPath.substr(cardPath.lastIndexOf("/")).replace(groupName, "");
-
-            let cardItem = {
-                group: groupName,
-                name: cardName,
-                filePath: cardPath,
-                isDrawn: false,
-                inHand: false
-            }
+            let cardItem = new Card(groupName, cardName, cardPath, Location.DECK);
 
             _deckMaster.push(cardItem);
         }
@@ -80,8 +205,9 @@ function shuffleDeck() {
     return true;
 }
 
-function revealCardToPile() {
+function flipCardToPile() {
     let drawnCard = _deckCurrent.shift();
+    drawnCard.location = Location.PILE;
     _deckPile.push(drawnCard);
     return drawnCard;
 }
@@ -89,21 +215,29 @@ function revealCardToPile() {
 function drawCardToHand(cardsToDraw = 1) {
     for (let i = 0; i < cardsToDraw; i++) {
         let drawnCard = _deckCurrent.shift();
+        drawnCard.location = Location.HAND;
         _deckHand.push(drawnCard);
     }
     return _deckHand;
 }
 
-function playCardFromHand(cardIndex = 0) {
+function playCardFromHandToPile(cardIndex = 0) {
     let playedCard = {};
     if (_deckHand && cardIndex < _deckHand.length) {
         playedCard = _deckHand.splice(cardIndex, 1);
+        playedCard.location = Location.PILE;
         _deckPile.push(playedCard);
     }
     return playedCard;
 }
 
 //      **      Utility Functions
+
+function clearDOMElement(el) {
+    while (el.firstChild) {
+        el.removeChild(el.lastChild);
+    }
+}
 
 function getCommonName(stringArray) {
     let workingString;
@@ -172,7 +306,7 @@ function commonString(a, b, caseSensitive = false) {
 
 getCards();
 
-_btnDealHand.addEventListener("click", dealBtnHandler);
-_btnDrawCard.addEventListener("click", drawBtnHandler);
 _btnNewDeck.addEventListener("click", newDeckBtnHandler);
 _btnShuffleDeck.addEventListener("click", shuffleBtnHandler);
+_btnDealHand.addEventListener("click", dealBtnHandler);
+_btnDrawCard.addEventListener("click", drawBtnHandler);

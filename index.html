@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
 </head>
 <body>
     <h1>My Virtual Card Deck</h1>
@@ -22,14 +23,21 @@
     <button name="drawCard" id="draw-card" disabled>Draw a Card</button>
     <button name="dealHand" id="deal-hand" disabled>Deal a Hand</button>
     <hr>
-    <div id="Pile">
+    <section id="card-deck" class="card-display">
+        <!-- Deck goes here -->
+    </section>
+    <hr>
+    <section id="card-pile" class="card-display">
         <!-- Played cards go here -->
-    </div>
+    </section>
     <hr>
-    <div id="Hand">
+    <section id="card-hand" class="card-display">
         <!-- Hand cards go here -->
-    </div>
+    </section>
     <hr>
+    <section id="status-text">
+        <!-- Status messages go here -->
+    </section>
     <script type="text/javascript" src="assets/images/index.js"></script>
     <script type="text/javascript" src="assets/js/logic.js"></script>
 </body>
